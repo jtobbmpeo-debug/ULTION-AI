@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ULTION AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f9f9f9; }
+        .setup-box { background: #fff; padding: 15px; border: 1px dashed #4285F4; border-radius: 4px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="password"] { width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 12px 24px; background: #4285F4; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #357ae8; }
+        #response { margin-top: 20px; white-space: pre-wrap; background: #ffffff; padding: 15px; border-radius: 5px; border: 1px solid #ddd; line-height: 1.5; }
+    </style>
+
+    <!-- THIS IMPORT SYSTEM RESOLVES THE CORS BROWSER BLOCK -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run"
+        }
+      }
+    </script>
+</head>
+<body>
+    <h1>ULTION AI</h1>
+    
+    <div class="setup-box">
+        <label for="apiKeyField"><strong>Paste Gemini API Key:</strong></label>
+        <input type="password" id="apiKeyField" placeholder="AIzaSy...">
+        <p style="margin: 0; font-size: 12px; color: #666;">Keeps your API key safe from automated GitHub blockers.</p>
+    </div>
+
+    <textarea id="userInput" placeholder="Ask me anything..."></textarea>
+    <br>
+    <button id="generateBtn">Generate</button>
+    <div id="response">Your response will appear here...</div>
+
+    <script type="module">
+        import { GoogleGenAI } from "@google/generative-ai";
+
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const prompt = document.getElementById('userInput').value;
+            const output = document.getElementById('response');
+            const apiKey = document.getElementById('apiKeyField').value.trim();
+            
+            if (!apiKey) {
+                output.innerText = "Please paste your Google Gemini API key in the box above first.";
+                return;
+            }
+            if (!prompt.trim()) {
+                output.innerText = "Please enter a prompt first.";
+                return;
+            }
+
+            output.innerText = "Thinking...";
+
+            try {
+                // Initializing via the official SDK engine wrapper
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash',
+                    contents: prompt,
+                });
+
+                if (response && response.text) {
+                    output.innerText = response.text;
+                } else {
+                    output.innerText = "Error: Did not receive text back from Gemini.";
+                }
+
+            } catch (err) {
+                output.innerHTML = `<span style="color:red; font-weight:bold;">Error: ${err.message}</span>`;
+            }
+        });
+    </script>
+</body>
+</html>
