@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Simple AI Web</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f9f9f9; }
+        .setup-box { background: #fff; padding: 15px; border: 1px dashed #4285F4; border-radius: 4px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        input[type="password"] { width: 100%; padding: 8px; margin: 5px 0 15px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 12px 24px; background: #4285F4; color: white; border: none; cursor: pointer; font-size: 16px; border-radius: 4px; font-weight: bold; }
+        button:hover { background: #357ae8; }
+        #response { margin-top: 20px; white-space: pre-wrap; background: #ffffff; padding: 15px; border-radius: 5px; border: 1px solid #ddd; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <h1>My AI App</h1>
+    
+    <!-- This protects your key from GitHub's automated secret scanners -->
+    <div class="setup-box">
+        <label for="apiKeyField"><strong>Paste Gemini API Key:</strong></label>
+        <input type="password" id="apiKeyField" placeholder="AIzaSy...">
+        <p style="margin: 0; font-size: 12px; color: #666;">Get your key from Google AI Studio. It stays safely right inside your browser window.</p>
+    </div>
+
+    <textarea id="userInput" placeholder="Ask me anything..."></textarea>
+    <br>
+    <button onclick="askAI()">Generate</button>
+    <div id="response">Your response will appear here...</div>
+
+    <script>
+        async function askAI() {
+            const prompt = document.getElementById('userInput').value;
+            const output = document.getElementById('response');
+            const apiKey = document.getElementById('apiKeyField').value.trim();
+            
+            if (!apiKey) {
+                output.innerText = "Please paste your Google Gemini API key in the box above first.";
+                return;
+            }
+            if (!prompt.trim()) {
+                output.innerText = "Please enter a prompt first.";
+                return;
+            }
+
+            output.innerText = "Thinking...";
+            
+            // Native Fetch REST endpoint targeting Gemini 2.5 Flash
+            const url = `https://googleapis.com{apiKey}`;
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }] 
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (!res.ok) {
+                    throw new Error(data.error?.message || `HTTP error! Status: ${res.status}`);
+                }
+
+                if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+                    output.innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    output.innerText = "Error: Received an unexpected response format.";
+                }
+                
+            } catch (err) {
+                output.innerHTML = `<span style="color:red; font-weight:bold;">Error: ${err.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
